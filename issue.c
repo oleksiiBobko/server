@@ -31,9 +31,9 @@ void module_generate (int fd)
 	struct stat file_info;
 	int rval;
 	/* Open /etc/issue.  */
-	input_fd = open (“/etc/issue”, O_RDONLY);
+	input_fd = open ("/etc/issue", O_RDONLY);
 	if (input_fd == -1)
-		system_error (“open”);
+		system_error ("open");
 	/* Obtain file information about it.  */
 	rval = fstat (input_fd, &file_info);
 	if (rval == -1) 

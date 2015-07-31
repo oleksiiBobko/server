@@ -19,7 +19,7 @@ static int get_uid_gid (pid_t pid, uid_t* uid, gid_t* gid)
 	struct stat dir_info;
 	int rval;
 	/* Generate the name of the process’s directory in /proc.  */
-	snprintf (dir_name, sizeof (dir_name), “/proc/%d”, (int) pid);
+	snprintf (dir_name, sizeof (dir_name), "/proc/%d", (int) pid);
 	/* Obtain information about the directory.  */
 	rval = stat (dir_name, &dir_info);
 	if (rval != 0) 
@@ -39,7 +39,7 @@ static char* get_user_name (uid_t uid)
 	struct passwd* entry;
 	entry = getpwuid (uid);
 	if (entry == NULL)
-		system_error (“getpwuid”);
+		system_error ("getpwuid");
 	return xstrdup (entry->pw_name);
 }
 /* Return the name of group GID.  The return value is a buffer that the
@@ -49,7 +49,7 @@ static char* get_group_name (gid_t gid)
 	struct group* entry;
 	entry = getgrgid (gid);
 	if (entry == NULL)
-		system_error (“getgrgid”);
+		system_error ("getgrgid");
 	return xstrdup (entry->gr_name);
 	/* Return the name of the program running in process PID, or NULL on
 	   error.  The return value is a newly allocated buffer which the caller
@@ -65,7 +65,7 @@ static char* get_group_name (gid_t gid)
 		char* result;
 		/* Generate the name of the “stat” file in the process’s /proc
 		   directory, and open it.  */
-		snprintf (file_name, sizeof (file_name), “/proc/%d/stat”, (int) pid);
+		snprintf (file_name, sizeof (file_name), "/proc/%d/stat", (int) pid);
 		fd = open (file_name, O_RDONLY);
 		if (fd == -1)
 			/* Couldn’t open the stat file for this process.  Perhaps the
@@ -78,12 +78,12 @@ static char* get_group_name (gid_t gid)
 			/* Couldn’t read, for some reason; bail.  */
 			return NULL;
 		/* NUL-terminate the file contents.  */
-		status_info[rval] = ‘\0’;
+		status_info[rval] = '\0';
 		/* The program name is the second element of the file contents and is
 		   surrounded by parentheses.  Find the positions of the parentheses
 		   in the file contents.  */
-		open_paren = strchr (status_info, ‘(‘);
-				close_paren = strchr (status_info, ‘)’);
+		open_paren = strchr (status_info, '(');
+				close_paren = strchr (status_info, ')');
 		if (open_paren == NULL 
 				||
 				close_paren == NULL 
@@ -96,7 +96,7 @@ static char* get_group_name (gid_t gid)
 		/* Copy the program name into the result.  */
 		strncpy (result, open_paren + 1, close_paren - open_paren - 1);
 		/* strncpy doesn’t NUL-terminate the result, so do it here.  */
-		result[close_paren - open_paren - 1] = ‘\0’;
+		result[close_paren - open_paren - 1] = '\0';
 		/* All done.  */
 		return result;
 	}
@@ -111,7 +111,7 @@ static char* get_group_name (gid_t gid)
 		int rss;
 		/* Generate the name of the process’s “statm” entry in its /proc
 		   directory.  */
-		snprintf (file_name, sizeof (file_name), “/proc/%d/statm”, (int) pid);
+		snprintf (file_name, sizeof (file_name), "/proc/%d/statm", (int) pid);
 		/* Open it.  */
 		fd = open (file_name, O_RDONLY);
 		if (fd == -1)
@@ -124,9 +124,9 @@ static char* get_group_name (gid_t gid)
 			/* Couldn’t read the contents; bail.  */
 			return -1;
 		/* NUL-terminate the contents.  */
-		mem_info[rval] = ‘\0’;
+		mem_info[rval] = '\0';
 		/* Extract the RSS.  It’s the second item.  */
-		rval = sscanf (mem_info, “%*d %d”, &rss);
+		rval = sscanf (mem_info, "%*d %d", &rss);
 		if (rval != 1)
 			/* The contents of statm are formatted in a way we don’t understand.  */
 			return -1;
@@ -219,9 +219,9 @@ static char* get_group_name (gid_t gid)
 		vec[vec_length].iov_len = strlen (page_start);
 		++vec_length;
 		/* Start a directory listing for /proc.  */
-		proc_listing = opendir (“/proc”);
+		proc_listing = opendir ("/proc");
 		if (proc_listing == NULL)
-			system_error (“opendir”);
+			system_error ("opendir");
 		/* Loop over directory entries in /proc.  */
 		while (1) {
 			struct dirent* proc_entry;
@@ -234,20 +234,18 @@ static char* get_group_name (gid_t gid)
 				/* We’ve hit the end of the listing.  */
 				break;
 
-			237
-				11.2    Implementation
 				/* Could not resolve the name.  */
-				error (optarg, “invalid host name”);
+				error (optarg, "invalid host name");
 			else
 				/* Hostname is OK, so use it.  */
 				local_address.s_addr = 
 					*((int*) (local_host_name->h_addr_list[0]));
 		}
 		break;      
-		case ‘h’:  
+		case 'h':  
 		/* User specified -h or --help.  */
 		print_usage (0);
-		case ‘m’:
+		case 'm':
 		/* User specified -m or --module-dir.  */
 		{
 			struct stat dir_info;
@@ -268,7 +266,7 @@ static char* get_group_name (gid_t gid)
 			module_dir = strdup (optarg);
 		}
 		break;
-		case ‘p’:  
+		case 'p':  
 		/* User specified -p or --port.  */
 		{
 			long value;
@@ -282,91 +280,11 @@ static char* get_group_name (gid_t gid)
 			port = (uint16_t) htons (value);
 		}
 		break;
-		case ‘v’:  
+		case 'v':  
 		/* User specified -v or --verbose.  */
 		verbose = 1;
 		break;
-		continues
-			13 0430 CH11  5/22/01  10:46 AM  Page 237
-			244
-			Chapter 11    A Sample GNU/Linux Application
-			While 
-			issue.so
-			sends the contents of a file using 
-			sendfile
-			, this module must invoke a
-			command and redirect its output to the client.To do this, the module follows these
-			steps:
-			1.  First, the module creates a child process using 
-			fork
-			(see Section 3.2.2,
-			 “
-			 Using
-			 fork
-			 and 
-			 exec
-			 ,
-			 ”
-			 in Chapter 3).
-			2.  The child process copies the client socket file descriptor to file descriptors 
-			STDOUT_FILENO
-			and 
-			STDERR_FILENO
-			, which correspond to standard output and
-			standard error (see Section 2.1.4,
-					“
-					Standard I/O,
-					”
-					in Chapter 2).The file descrip-
-			tors are copied using the 
-			dup2
-			call (see Section 5.4.3,
-					“
-					Redirecting the Standard
-					Input, Output, and Error Streams,
-					”
-					in Chapter 5). All further output from the
-			process to either of these streams is sent to the client socket.
-			3.  The child process invokes the 
-			df
-			command with the 
-			-h
-			option by calling 
-			execv
-			(see Section 3.2.2,
-			 “
-			 Using 
-			 fork
-			 and 
-			 exec
-			 ,
-			 ”
-			 in Chapter 3).
-			4.  The parent process waits for the child process to exit by calling 
-			waitpid
-			(see
-			 Section 3.4.2,
-			 “
-			 The 
-			 wait
-			 System Calls,
-			 ”
-			 in Chapter 3).
-			You could easily adapt this module to invoke a different command and redirect its
-			output to the client.
-			11.3.4   Summarize Running Processes
-			The 
-			processes.so
-			module (see Listing 11.9) is a more extensive server module imple-
-			mentation. It generates a page containing a table that summarizes the processes cur-
-			rently running on the server system. Each process is represented by a row in the table
-			that lists the PID, the executable program name, the owning user and group names,
-			     and the resident set size.
-				     Listing 11.9
-				     (
-				      processes.c
-				     ) Server Module to Summarize Processes
-#include <assert.h>
+			#include <assert.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <grp.h>
