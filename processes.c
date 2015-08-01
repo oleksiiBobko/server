@@ -85,11 +85,7 @@ static char* get_program_name (pid_t pid)
 	   in the file contents.  */
 	open_paren = strchr (status_info, '(');
 	close_paren = strchr (status_info, ')');
-	if (open_paren == NULL 
-			||
-			close_paren == NULL 
-			||
-			close_paren < open_paren)
+	if (open_paren == NULL || close_paren == NULL || close_paren < open_paren)
 		/* Couldn’t find them; bail.  */
 		return NULL;
 	/* Allocate memory for the result.  */
@@ -166,8 +162,7 @@ static char* format_process_info (pid_t pid)
 	group_name = get_group_name (gid);
 	/* Compute the length of the string we’ll need to hold the result, and
 	   allocate memory to hold it.  */
-	result_length = strlen (program_name) 
-		+ strlen (user_name) + strlen (group_name) + 128;
+	result_length = strlen (program_name) + strlen (user_name) + strlen (group_name) + 128;
 	result = (char*) xmalloc (result_length);
 	/* Format the result.  */
 	snprintf (result, result_length,
@@ -272,4 +267,6 @@ void module_generate (int fd)
 		free (vec[i].iov_base);
 	/* Deallocate the iovec array.  */
 	free (vec);
+
 }
+
