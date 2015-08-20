@@ -60,7 +60,7 @@ static void clean_up_child_process (int signal_number)
 }
 /* Process an HTTP “GET” request for PAGE, and send the results to the
    file descriptor CONNECTION_FD.  */
-static void handle_get (int connection_fd, const char* page)
+static void handle_get(int connection_fd, const char* page)
 {
 	struct server_module* module = NULL;
 	/* Make sure the requested page begins with a slash and does not
@@ -70,10 +70,9 @@ static void handle_get (int connection_fd, const char* page)
 		char module_file_name[64];
 		/* The page name looks OK.  Construct the module name by appending
 		   “.so” to the page name.  */
-		snprintf (module_file_name, sizeof (module_file_name),
-				"%s.so", page + 1);
+		snprintf(module_file_name, sizeof(module_file_name), "%s.so", page + 1);
 		/* Try to open the module.  */
-		module = module_open (module_file_name);
+		module = module_open(module_file_name);
 	}
 	if (module == NULL) {
 		/* Either the requested page was malformed, or we couldn’t open a
@@ -81,30 +80,30 @@ static void handle_get (int connection_fd, const char* page)
 		   response 404, Not Found.  */
 		char response[1024];
 		/* Generate the response message.  */
-		snprintf (response, sizeof (response), not_found_response_template, page);
+		snprintf (response, sizeof(response), not_found_response_template, page);
 		/* Send it to the client.  */
-		write (connection_fd, response, strlen (response));
+		write(connection_fd, response, strlen(response));
 	} else {
 		/* The requested module was loaded successfully.  */
 		/* Send the HTTP response indicating success, and the HTTP header
 		   for an HTML page.  */
-		write (connection_fd, ok_response, strlen (ok_response));
+		write(connection_fd, ok_response, strlen(ok_response));
 		/* Invoke the module, which will generate HTML output and send it
 		   to the client file descriptor.  */
 		(*module->generate_function) (connection_fd);
 		/* We’re done with the module.  */
-		module_close (module);
+		module_close(module);
 	}
 }
 /* Handle a client connection on the file descriptor CONNECTION_FD.  */
-static void handle_connection (int connection_fd)
+static void handle_connection(int connection_fd)
 {
 	char buffer[256];
 	ssize_t bytes_read;
 	/* Read some data from the client.  */
-	bytes_read = read (connection_fd, buffer, sizeof (buffer) - 1);
+	bytes_read = read(connection_fd, buffer, sizeof(buffer) - 1);
 	if (bytes_read > 0) {
-		char method[sizeof (buffer)];
+		char method[sizeof(buffer)];
 		char url[sizeof (buffer)];
 		char protocol[sizeof (buffer)];
 		/* Some data was read successfully.  NUL-terminate the buffer so
@@ -113,29 +112,28 @@ static void handle_connection (int connection_fd)
 		/* The first line the client sends is the HTTP request, which is
 		   composed of a method, the requested page, and the protocol
 		   version.  */
-		sscanf (buffer, "%s %s %s", method, url, protocol);
+		sscanf(buffer, "%s %s %s", method, url, protocol);
 		/* The client may send various header information following the
 		   request.  For this HTTP implementation, we don’t care about it.
 		   However, we need to read any data the client tries to send.  Keep
 		   on reading data until we get to the end of the header, which is
 		   delimited by a blank line.  HTTP specifies CR/LF as the line
 		   delimiter.  */
-		while (strstr (buffer, "\r\n\r\n") == NULL)
-				bytes_read = read (connection_fd, buffer, sizeof (buffer));
+		while (strstr(buffer, "\r\n\r\n") == NULL)
+				bytes_read = read(connection_fd, buffer, sizeof (buffer));
 		/* Make sure the last read didn’t fail.  If it did, there’s a
 		   problem with the connection, so give up.  */
 		if (bytes_read == -1) {
-			close (connection_fd);
+			close(connection_fd);
 			return;
 		}
 		/* Check the protocol field.  We understand HTTP versions 1.0 and
 		   1.1.  */
-		if (strcmp (protocol, "HTTP/1.0") && strcmp (protocol, "HTTP/1.1")) {
+		if (strcmp(protocol, "HTTP/1.0") && strcmp (protocol, "HTTP/1.1")) {
 			/* We don’t understand this protocol.  Report a bad response.  */
-			write (connection_fd, bad_request_response, 
-					sizeof (bad_request_response));
+			write(connection_fd, bad_request_response, sizeof (bad_request_response));
 		}
-		else if (strcmp (method, "GET")) {
+		else if (strcmp(method, "GET")) {
 			/* This server only implements the GET method.  The client
 			   specified some other method, so report the failure.  */
 			char response[1024];

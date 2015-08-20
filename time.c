@@ -13,24 +13,25 @@ static char* page_template =
 "  <p>The current time is %s.</p>\n"
 " </body>\n"
 "</html>\n";
-void module_generate (int fd)
+
+void module_generate(int fd)
 {
 	struct timeval tv;
 	struct tm* ptm;
 	char time_string[40];
 	FILE* fp;
 	/* Obtain the time of day, and convert it to a tm struct.  */
-	gettimeofday (&tv, NULL);
-	ptm = localtime (&tv.tv_sec);
+	gettimeofday(&tv, NULL);
+	ptm = localtime(&tv.tv_sec);
 	/* Format the date and time, down to a single second.  */
-	strftime (time_string, sizeof (time_string), "%H:%M:%S", ptm);
+	strftime(time_string, sizeof(time_string), "%H:%M:%S", ptm);
 	/* Create a stream corresponding to the client socket file
 	   descriptor.  */
 	fp = fdopen (fd, "w");
-	assert (fp != NULL);
+	assert(fp != NULL);
 	/* Generate the HTML output.  */
-	fprintf (fp, page_template, time_string);
+	fprintf(fp, page_template, time_string);
 	/* All done; flush the stream.  */
-	fflush (fp);
+	fflush(fp);
 }
 

@@ -30,13 +30,13 @@ static const char* const usage_template =
 /* Print usage information and exit.  If IS_ERROR is nonzero, write to
    stderr and use an error exit code.  Otherwise, write to stdout and
    use a non-error termination code.  Does not return.  */
-static void print_usage (int is_error)
-{
-	fprintf (is_error ? stderr : stdout, usage_template, program_name);
-	exit (is_error ? 1 : 0);
+static void print_usage(int is_error) {
+	fprintf(is_error ? stderr : stdout, usage_template, program_name);
+	exit(is_error ? 1 : 0);
 }
-int main (int argc, char* const argv[])
-{
+
+int main(int argc, char* const argv[]) {
+
 	struct in_addr local_address;
 	uint16_t port;
 	int next_option;
@@ -49,91 +49,88 @@ int main (int argc, char* const argv[])
 	/* Don’t print verbose messages.  */
 	verbose = 0;
 	/* Load modules from the directory containing this executable.  */
-	module_dir = get_self_executable_directory ();
-	assert (module_dir != NULL);
+	module_dir = get_self_executable_directory();
+	assert(module_dir != NULL);
 	/* Parse options.  */
 	do {
-		next_option = 
-			getopt_long (argc, argv, short_options, long_options, NULL);
-		switch (next_option) {
-			case 'a':  
-				/* User specified -a or --address.  */
-				{
-					struct hostent* local_host_name;
-					/* Look up the hostname the user specified.  */
-					local_host_name = gethostbyname (optarg);
-					if (local_host_name == NULL 
-							||
-							local_host_name->h_length == 0)
-						/* Could not resolve the name.  */
-						error (optarg, "invalid host name");
-					else
-						/* Hostname is OK, so use it.  */
-						local_address.s_addr = 
-							*((int*) (local_host_name->h_addr_list[0]));
-				}
-				break;      
-			case 'h':  
-				/* User specified -h or --help.  */
-				print_usage (0);
-			case 'm':
-				/* User specified -m or --module-dir.  */
-				{
-					struct stat dir_info;
-					/* Check that it exists.  */
-					if (access (optarg, F_OK) != 0)
-						error (optarg, "module directory does not exist");
-					/* Check that it is accessible.  */
-					if (access (optarg, R_OK 
-								|
-								X_OK) != 0)
-						error (optarg, "module directory is not accessible");
-					/* Make sure that it is a directory.  */
-					if (stat (optarg, &dir_info) != 0 
-							||
-							!S_ISDIR (dir_info.st_mode))
-						error (optarg, "not a directory");
-					/* It looks OK, so use it.  */
-					module_dir = strdup (optarg);
-				}
-				break;
-			case 'p':  
-				/* User specified -p or --port.  */
-				{
-					long value;
-					char* end;
-					value = strtol (optarg, &end, 10);
-					if (*end != '\0')
-						/* The user specified nondigits in the port number.  */
-						print_usage (1);
-					/* The port number needs to be converted to network (big endian)
-					   byte order.  */
-					port = (uint16_t) htons (value);
-				}
-				break;
-			case 'v':  
-				/* User specified -v or --verbose.  */
-				verbose = 1;
-				break;
-			case '?':  
-				/* User specified an unrecognized option.  */
-				print_usage (1);
-			case -1:  
-				/* Done with options.  */
-				break;
-			default:
-				abort ();
+	next_option = getopt_long(argc, argv, short_options, long_options, NULL);
+	switch(next_option) {
+		case 'a':  
+		/* User specified -a or --address.  */
+		{
+		struct hostent* local_host_name;
+		/* Look up the hostname the user specified.  */
+		local_host_name = gethostbyname(optarg);
+		if (local_host_name == NULL || local_host_name->h_length == 0) {
+			error(optarg, "invalid host name");
+		} else {
+			local_address.s_addr = *((int*) (local_host_name->h_addr_list[0]));
 		}
-	} while (next_option != -1);
+		break;      
+		case 'h':  
+		/* User specified -h or --help.  */
+			print_usage (0);
+		case 'm':
+		/* User specified -m or --module-dir.  */
+		{
+			struct stat dir_info;
+			/* Check that it exists.  */
+			if (access(optarg, F_OK) != 0) {
+				error(optarg, "module directory does not exist");
+			}
+					/* Check that it is accessible.  */
+			if(access(optarg, R_OK | X_OK) != 0) {
+				error(optarg, "module directory is not accessible");
+			}
+			/* Make sure that it is a directory.  */
+			if (stat(optarg, &dir_info) != 0 || !S_ISDIR(dir_info.st_mode)) {
+				error(optarg, "not a directory");
+			}
+			/* It looks OK, so use it.  */
+			module_dir = strdup(optarg);
+		}
+		break;
+		case 'p':  
+		/* User secified -p or --port.  */
+		{
+			long value;
+			char* end;
+			value = strtol(optarg, &end, 10);
+			if (*end != '\0') {
+				/* The user specified nondigits in the port number.  */
+				print_usage(1);
+			}
+			/* The port number needs to be converted to network (big endian) byte order.  */
+			port = (uint16_t)htons(value);
+		}
+		break;
+		case 'v':  
+			/* User specified -v or --verbose.  */
+			verbose = 1;
+			break;
+		case '?':  
+			/* User specified an unrecognized option.  */
+			print_usage(1);
+		case -1:  
+			/* Done with options.  */
+			break;
+		default:
+			abort();
+		}
+	} while(next_option != -1);
 	/* This program takes no additional arguments.  Issue an error if the
 	   user specified any.  */
-	if (optind != argc)
-		print_usage (1);
+	if (optind != argc) {
+		print_usage(1);
+	}
+
 	/* Print the module directory, if we’re running verbose.  */
-	if (verbose)
-		printf ("modules will be loaded from %s\n", module_dir);
+	if (verbose) {
+		printf("modules will be loaded from %s\n", module_dir);
+	}
+
 	/* Run the server.  */
-	server_run (local_address, port);
+	server_run(local_address, port);
 	return 0;
 }
 
