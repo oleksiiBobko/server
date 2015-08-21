@@ -80,7 +80,7 @@ static void handle_get(int connection_fd, const char* page)
 		   response 404, Not Found.  */
 		char response[1024];
 		/* Generate the response message.  */
-		snprintf (response, sizeof(response), not_found_response_template, page);
+		snprintf(response, sizeof(response), not_found_response_template, page);
 		/* Send it to the client.  */
 		write(connection_fd, response, strlen(response));
 	} else {
@@ -119,7 +119,7 @@ static void handle_connection(int connection_fd)
 		   on reading data until we get to the end of the header, which is
 		   delimited by a blank line.  HTTP specifies CR/LF as the line
 		   delimiter.  */
-		while (strstr(buffer, "\r\n\r\n") == NULL)
+		while(strstr(buffer, "\r\n\r\n") == NULL)
 				bytes_read = read(connection_fd, buffer, sizeof (buffer));
 		/* Make sure the last read didn’t fail.  If it did, there’s a
 		   problem with the connection, so give up.  */
@@ -139,11 +139,11 @@ static void handle_connection(int connection_fd)
 			char response[1024];
 			snprintf (response, sizeof (response),
 					bad_method_response_template, method);
-			write (connection_fd, response, strlen (response));
+			write(connection_fd, response, strlen(response));
 		}
 		else 
 			/* A valid request.  Process it.  */
-			handle_get (connection_fd, url);
+			handle_get(connection_fd, url);
 	}
 	else if (bytes_read == 0)
 		/* The client closed the connection before sending any data.
@@ -151,9 +151,9 @@ static void handle_connection(int connection_fd)
 		;
 	else 
 		/* The call to read failed.  */
-		system_error ("read");
+		system_error("read");
 }
-void server_run (struct in_addr local_address, uint16_t port)
+void server_run(struct in_addr local_address, uint16_t port)
 {
 	struct sockaddr_in socket_address;
 	int rval;
@@ -161,40 +161,40 @@ void server_run (struct in_addr local_address, uint16_t port)
 	int server_socket;
 	/* Install a handler for SIGCHLD that cleans up child processes that
 	   have terminated.  */
-	memset (&sigchld_action, 0, sizeof (sigchld_action));
+	memset(&sigchld_action, 0, sizeof (sigchld_action));
 	sigchld_action.sa_handler = &clean_up_child_process;
-	sigaction (SIGCHLD, &sigchld_action, NULL);
+	sigaction(SIGCHLD, &sigchld_action, NULL);
 	/* Create a TCP socket.  */
-	server_socket = socket (PF_INET, SOCK_STREAM, 0);
+	server_socket = socket(PF_INET, SOCK_STREAM, 0);
 	if (server_socket == -1)
-		system_error ("socket");
+		system_error("socket");
 	/* Construct a socket address structure for the local address on
 	   which we want to listen for connections.  */
-	memset (&socket_address, 0, sizeof (socket_address));
+	memset(&socket_address, 0, sizeof(socket_address));
 	socket_address.sin_family = AF_INET;
 	socket_address.sin_port = port;
 	socket_address.sin_addr = local_address;
 	/* Bind the socket to that address.  */
-	rval = bind (server_socket, &socket_address, sizeof (socket_address));
+	rval = bind(server_socket, &socket_address, sizeof (socket_address));
 	if (rval != 0)
-		system_error ("bind");
+		system_error("bind");
 	/*  Instruct the socket to accept connections.  */
-	rval = listen (server_socket, 10);
+	rval = listen(server_socket, 10);
 	if (rval != 0)
-		system_error ("listen");
+		system_error("listen");
 	if (verbose) {
 		/* In verbose mode, display the local address and port number
 		   we’re listening on.  */
 		socklen_t address_length;
 		/* Find the socket’s local address.  */
 		address_length = sizeof (socket_address);
-		rval = getsockname (server_socket, &socket_address, &address_length);
-		assert (rval == 0);
+		rval = getsockname(server_socket, &socket_address, &address_length);
+		assert(rval == 0);
 		/* Print a message.  The port number needs to be converted from
 		   network byte order (big endian) to host byte order.  */
-		printf ("server listening on %s:%d\n", 
-				inet_ntoa (socket_address.sin_addr), 
-				(int) ntohs (socket_address.sin_port));
+		printf("server listening on %s:%d\n", 
+				inet_ntoa(socket_address.sin_addr), 
+				(int) ntohs(socket_address.sin_port));
 	}
 	/* Loop forever, handling connections.  */
 	while (1) {
@@ -205,7 +205,7 @@ void server_run (struct in_addr local_address, uint16_t port)
 		/* Accept a connection.  This call blocks until a connection is
 		   ready.  */
 		address_length = sizeof (remote_address);
-		connection = accept (server_socket, &remote_address, &address_length);
+		connection = accept(server_socket, &remote_address, &address_length);
 		if (connection == -1) {
 			/* The call to accept failed.  */
 			if (errno == EINTR)
@@ -213,7 +213,7 @@ void server_run (struct in_addr local_address, uint16_t port)
 				continue;
 			else
 				/* Something else went wrong.  */
-				system_error ("accept");
+				system_error("accept");
 		}
 		/* We have a connection.  Print a message if we’re running in
 		   verbose mode.  */
@@ -221,25 +221,25 @@ void server_run (struct in_addr local_address, uint16_t port)
 			socklen_t address_length;
 			/* Get the remote address of the connection.  */
 			address_length = sizeof (socket_address);
-			rval = getpeername (connection, &socket_address, &address_length);
-			assert (rval == 0);
+			rval = getpeername(connection, &socket_address, &address_length);
+			assert(rval == 0);
 			/* Print a message.  */
-			printf ("connection accepted from %s\n",
-					inet_ntoa (socket_address.sin_addr));
+			printf("connection accepted from %s\n",
+					inet_ntoa(socket_address.sin_addr));
 		}
 		/* Fork a child process to handle the connection.  */
 		child_pid = fork();
 		if (child_pid == 0) {
 			/* This is the child process.  It shouldn’t use stdin or stdout,
 			   so close them.  */
-			close (STDIN_FILENO);
-			close (STDOUT_FILENO);
+			close(STDIN_FILENO);
+			close(STDOUT_FILENO);
 			/* Also this child process shouldn’t do anything with the
 			   listening socket.  */
-			close (server_socket);
+			close(server_socket);
 			/* Handle a request from the connection.  We have our own copy
 			   of the connected socket descriptor.  */
-			handle_connection (connection);
+			handle_connection(connection);
 			/* All done; close the connection socket, and end the child
 			   process.  */
 			close(connection);
@@ -250,11 +250,11 @@ void server_run (struct in_addr local_address, uint16_t port)
 			   connection, so we don’t need our copy of the connected socket
 			   descriptor.  Close it.  Then continue with the loop and
 			   accept another connection.  */
-			close (connection);
+			close(connection);
 		}
 		else
 			/* Call to fork failed.  */
-			system_error ("fork");
+			system_error("fork");
 	}
 }
 

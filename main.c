@@ -15,9 +15,9 @@ static const struct option long_options[] = {
 	{ "port",             1, NULL, 'p' },
 	{ "verbose",          0, NULL, 'v' },
 };
-/* Description of short options for getopt_long.  */
+
 static const char* const short_options = "a:hm:p:v";
-/* Usage summary text.  */
+
 static const char* const usage_template = 
 "Usage: %s [ options ]\n"
 "  -a, --address ADDR        Bind to local address (by default, bind\n"
@@ -27,9 +27,11 @@ static const char* const usage_template =
 "                              (by default, use executable directory).\n"
 "  -p, --port PORT           Bind to specified port.\n"
 "  -v, --verbose             Print verbose messages.\n";
+
 /* Print usage information and exit.  If IS_ERROR is nonzero, write to
    stderr and use an error exit code.  Otherwise, write to stdout and
    use a non-error termination code.  Does not return.  */
+
 static void print_usage(int is_error) {
 	fprintf(is_error ? stderr : stdout, usage_template, program_name);
 	exit(is_error ? 1 : 0);
@@ -50,26 +52,31 @@ int main(int argc, char* const argv[]) {
 	verbose = 0;
 	/* Load modules from the directory containing this executable.  */
 	module_dir = get_self_executable_directory();
+
 	assert(module_dir != NULL);
 	/* Parse options.  */
+
 	do {
+
 	next_option = getopt_long(argc, argv, short_options, long_options, NULL);
+	
 	switch(next_option) {
 		case 'a':  
 		/* User specified -a or --address.  */
 		{
-		struct hostent* local_host_name;
-		/* Look up the hostname the user specified.  */
-		local_host_name = gethostbyname(optarg);
-		if (local_host_name == NULL || local_host_name->h_length == 0) {
+			struct hostent* local_host_name;
+			/* Look up the hostname the user specified.  */
+			local_host_name = gethostbyname(optarg);
+			if (local_host_name == NULL || local_host_name->h_length == 0) {
 			error(optarg, "invalid host name");
-		} else {
-			local_address.s_addr = *((int*) (local_host_name->h_addr_list[0]));
+			} else {
+				local_address.s_addr = *((int*) (local_host_name->h_addr_list[0]));
+			}
 		}
 		break;      
 		case 'h':  
 		/* User specified -h or --help.  */
-			print_usage (0);
+			print_usage(0);
 		case 'm':
 		/* User specified -m or --module-dir.  */
 		{
@@ -129,8 +136,6 @@ int main(int argc, char* const argv[]) {
 		printf("modules will be loaded from %s\n", module_dir);
 	}
 
-	/* Run the server.  */
 	server_run(local_address, port);
 	return 0;
 }
-
