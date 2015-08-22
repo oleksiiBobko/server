@@ -13,15 +13,15 @@
 #include "server.h"
 /* Set *UID and *GID to the owning user ID and group ID, respectively,
    of process PID.  Return 0 on success, nonzero on failure.  */
-static int get_uid_gid (pid_t pid, uid_t* uid, gid_t* gid)
+static int get_uid_gid(pid_t pid, uid_t* uid, gid_t* gid)
 {
 	char dir_name[64];
 	struct stat dir_info;
 	int rval;
 	/* Generate the name of the process’s directory in /proc.  */
-	snprintf (dir_name, sizeof (dir_name), "/proc/%d", (int) pid);
+	snprintf(dir_name, sizeof (dir_name), "/proc/%d", (int) pid);
 	/* Obtain information about the directory.  */
-	rval = stat (dir_name, &dir_info);
+	rval = stat(dir_name, &dir_info);
 	if (rval != 0) 
 		/* Couldn’t find it; perhaps this process no longer exists.  */
 		return 1;
@@ -66,15 +66,15 @@ static char* get_program_name (pid_t pid)
 	char* result;
 	/* Generate the name of the “stat” file in the process’s /proc
 	   directory, and open it.  */
-	snprintf (file_name, sizeof (file_name), "/proc/%d/stat", (int) pid);
+	snprintf(file_name, sizeof (file_name), "/proc/%d/stat", (int) pid);
 	fd = open (file_name, O_RDONLY);
 	if (fd == -1)
 		/* Couldn’t open the stat file for this process.  Perhaps the
 		   process no longer exists.  */
 		return NULL;
 	/* Read the contents.  */
-	rval = read (fd, status_info, sizeof (status_info) - 1);
-	close (fd);
+	rval = read(fd, status_info, sizeof (status_info) - 1);
+	close(fd);
 	if (rval <= 0)
 		/* Couldn’t read, for some reason; bail.  */
 		return NULL;
@@ -83,15 +83,15 @@ static char* get_program_name (pid_t pid)
 	/* The program name is the second element of the file contents and is
 	   surrounded by parentheses.  Find the positions of the parentheses
 	   in the file contents.  */
-	open_paren = strchr (status_info, '(');
-	close_paren = strchr (status_info, ')');
+	open_paren = strchr(status_info, '(');
+	close_paren = strchr(status_info, ')');
 	if (open_paren == NULL || close_paren == NULL || close_paren < open_paren)
 		/* Couldn’t find them; bail.  */
 		return NULL;
 	/* Allocate memory for the result.  */
-	result = (char*) xmalloc (close_paren - open_paren);
+	result = (char*) xmalloc(close_paren - open_paren);
 	/* Copy the program name into the result.  */
-	strncpy (result, open_paren + 1, close_paren - open_paren - 1);
+	strncpy(result, open_paren + 1, close_paren - open_paren - 1);
 	/* strncpy doesn’t NUL-terminate the result, so do it here.  */
 	result[close_paren - open_paren - 1] = '\0';
 	/* All done.  */
@@ -99,7 +99,7 @@ static char* get_program_name (pid_t pid)
 }
 /* Return the resident set size (RSS), in kilobytes, of process PID.
    Return -1 on failure.  */
-static int get_rss (pid_t pid)
+static int get_rss(pid_t pid)
 {
 	char file_name[64];
 	int fd;
@@ -108,14 +108,14 @@ static int get_rss (pid_t pid)
 	int rss;
 	/* Generate the name of the process’s “statm” entry in its /proc
 	   directory.  */
-	snprintf (file_name, sizeof (file_name), "/proc/%d/statm", (int) pid);
+	snprintf(file_name, sizeof (file_name), "/proc/%d/statm", (int) pid);
 	/* Open it.  */
-	fd = open (file_name, O_RDONLY);
+	fd = open(file_name, O_RDONLY);
 	if (fd == -1)
 		/* Couldn’t open it; perhaps this process no longer exists.  */
 		return -1;
 	/* Read the file’s contents.  */
-	rval = read (fd, mem_info, sizeof (mem_info) - 1);
+	rval = read(fd, mem_info, sizeof (mem_info) - 1);
 	close (fd);
 	if (rval <= 0)
 		/* Couldn’t read the contents; bail.  */
@@ -123,18 +123,18 @@ static int get_rss (pid_t pid)
 	/* NUL-terminate the contents.  */
 	mem_info[rval] = '\0';
 	/* Extract the RSS.  It’s the second item.  */
-	rval = sscanf (mem_info, "%*d %d", &rss);
+	rval = sscanf(mem_info, "%*d %d", &rss);
 	if (rval != 1)
 		/* The contents of statm are formatted in a way we don’t understand.  */
 		return -1;
 	/* The values in statm are in units of the system’s page size.
 	   Convert the RSS to kilobytes.  */
-	return rss * getpagesize () / 1024;
+	return rss * getpagesize() / 1024;
 }
 /* Generate an HTML table row for process PID.  The return value is a
    pointer to a buffer that the caller must deallocate with free, or
    NULL if an error occurs.  */
-static char* format_process_info (pid_t pid)
+static char* format_process_info(pid_t pid)
 {
 	int rval;
 	uid_t uid;
@@ -146,33 +146,33 @@ static char* format_process_info (pid_t pid)
 	size_t result_length;
 	char* result;
 	/* Obtain the process’s user and group IDs.  */
-	rval = get_uid_gid (pid, &uid, &gid);
+	rval = get_uid_gid(pid, &uid, &gid);
 	if (rval != 0)
 		return NULL;
 	/* Obtain the process’s RSS.  */
-	rss = get_rss (pid);
+	rss = get_rss(pid);
 	if (rss == -1)
 		return NULL;
 	/* Obtain the process’s program name.  */
-	program_name = get_program_name (pid);
+	program_name = get_program_name(pid);
 	if (program_name == NULL)
 		return NULL;
 	/* Convert user and group IDs to corresponding names.  */
-	user_name = get_user_name (uid);
-	group_name = get_group_name (gid);
+	user_name = get_user_name(uid);
+	group_name = get_group_name(gid);
 	/* Compute the length of the string we’ll need to hold the result, and
 	   allocate memory to hold it.  */
-	result_length = strlen (program_name) + strlen (user_name) + strlen (group_name) + 128;
-	result = (char*) xmalloc (result_length);
+	result_length = strlen(program_name) + strlen(user_name) + strlen(group_name) + 128;
+	result = (char*) xmalloc(result_length);
 	/* Format the result.  */
-	snprintf (result, result_length,
+	snprintf(result, result_length,
 			"<tr><td align=\"right\">%d</td><td><tt>%s</tt></td><td>%s</td>"
 			"<td>%s</td><td align=\"right\">%d</td></tr>\n",
 			(int) pid, program_name, user_name, group_name, rss);
 	/* Clean up.  */
-	free (program_name);
-	free (user_name);
-	free (group_name);
+	free(program_name);
+	free(user_name);
+	free(group_name);
 	/* All done.  */
 	return result;
 }
@@ -197,7 +197,7 @@ static char* page_end =
 "  </table>\n"
 " </body>\n"
 "</html>\n";
-void module_generate (int fd)
+void module_generate(int fd)
 {
 	size_t i;
 	DIR* proc_listing;
@@ -208,15 +208,15 @@ void module_generate (int fd)
 	/* The allocated size of the array.  */
 	size_t vec_size = 16;
 	/* The array of iovcec elements.  */
-	struct iovec* vec = (struct iovec*) xmalloc (vec_size * sizeof (struct iovec));
+	struct iovec* vec = (struct iovec*) xmalloc(vec_size * sizeof (struct iovec));
 	/* The first buffer is the HTML source for the start of the page.  */
 	vec[vec_length].iov_base = page_start;
-	vec[vec_length].iov_len = strlen (page_start);
+	vec[vec_length].iov_len = strlen(page_start);
 	++vec_length;
 	/* Start a directory listing for /proc.  */
-	proc_listing = opendir ("/proc");
+	proc_listing = opendir("/proc");
 	if (proc_listing == NULL)
-		system_error ("opendir");
+		system_error("opendir");
 	/* Loop over directory entries in /proc.  */
 	while (1) {
 		struct dirent* proc_entry;
@@ -224,19 +224,19 @@ void module_generate (int fd)
 		pid_t pid;
 		char* process_info;
 		/* Get the next entry in /proc.  */
-		proc_entry  = readdir (proc_listing);
+		proc_entry  = readdir(proc_listing);
 		if (proc_entry == NULL)
 			/* We’ve hit the end of the listing.  */
 			break;
 		/* If this entry is not composed purely of digits, it’s not a
 		   process directory, so skip it.  */
 		name = proc_entry->d_name;
-		if (strspn (name, "0123456789") != strlen (name))
+		if (strspn(name, "0123456789") != strlen(name))
 			continue;
 		/* The name of the entry is the process ID.  */
-		pid = (pid_t) atoi (name);
+		pid = (pid_t) atoi(name);
 		/* Generate HTML for a table row describing this process.  */
-		process_info = format_process_info (pid);
+		process_info = format_process_info(pid);
 		if (process_info == NULL)
 			/* Something went wrong.  The process may have vanished while we
 			   were looking at it.  Use a placeholder row instead.  */
@@ -246,27 +246,27 @@ void module_generate (int fd)
 		   listing processes).  If not, grow it to twice its current size.  */
 		if (vec_length == vec_size - 1) {
 			vec_size *= 2;
-			vec = xrealloc (vec, vec_size * sizeof (struct iovec));
+			vec = xrealloc(vec, vec_size * sizeof (struct iovec));
 		}
 		/* Store this buffer as the next element of the array.  */
 		vec[vec_length].iov_base = process_info;
-		vec[vec_length].iov_len = strlen (process_info);
+		vec[vec_length].iov_len = strlen(process_info);
 		++vec_length;
 	}
 	/* End the directory listing operation.  */
-	closedir (proc_listing);
+	closedir(proc_listing);
 	/* Add one last buffer with HTML that ends the page.  */
 	vec[vec_length].iov_base = page_end;
-	vec[vec_length].iov_len = strlen (page_end);
+	vec[vec_length].iov_len = strlen(page_end);
 	++vec_length;
 	/* Output the entire page to the client file descriptor all at once.  */
-	writev (fd, vec, vec_length);
+	writev(fd, vec, vec_length);
 	/* Deallocate the buffers we created.  The first and last are static
 	   and should not be deallocated.  */
 	for (i = 1; i < vec_length - 1; ++i)
-		free (vec[i].iov_base);
+		free(vec[i].iov_base);
 	/* Deallocate the iovec array.  */
-	free (vec);
+	free(vec);
 
 }
 

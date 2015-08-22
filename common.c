@@ -26,8 +26,7 @@ void* xrealloc(void* ptr, size_t size) {
 		return ptr;
 }
 
-char* xstrdup(const char* s)
-{
+char* xstrdup(const char* s) {
 	char* copy = strdup(s);
 	if (copy == NULL) {
 		abort();
@@ -35,17 +34,17 @@ char* xstrdup(const char* s)
 		return copy;
 	}
 }
-void system_error(const char* operation)
-{
+
+void system_error(const char* operation) {
 	error(operation, strerror(errno));
 }
-void error(const char* cause, const char* message)
-{
+
+void error(const char* cause, const char* message) {
 	fprintf(stderr, "%s: error: (%s) %s\n", program_name, cause, message);
 	exit (1);
 }
-char* get_self_executable_directory()
-{
+
+char* get_self_executable_directory() {
 	int rval;
 	char link_target[1024];
 	char* last_slash;
@@ -62,6 +61,7 @@ char* get_self_executable_directory()
 	/* We want to trim the name of the executable file, to obtain the
 	   directory that contains it.  Find the rightmost slash.  */
 	last_slash = strrchr(link_target, '/');
+
 	if (last_slash == NULL || last_slash == link_target) {
 		abort();
 	}
@@ -73,3 +73,6 @@ char* get_self_executable_directory()
 	return result;
 }
 
+//int main() {
+// printf("%s\n", get_self_executable_directory());
+//}

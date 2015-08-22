@@ -10,11 +10,13 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include "server.h"
+
 /* HTTP response and header for a successful request.  */
 static char* ok_response =
 "HTTP/1.0 200 OK\n"
 "Content-type: text/html\n"
 "\n";
+
 /* HTTP response, header, and body, indicating that we didn’t
    understand the request.  */
 static char* bad_request_response = 
@@ -27,6 +29,7 @@ static char* bad_request_response =
 "  <p>This server did not understand your request.</p>\n"
 " </body>\n"
 "</html>\n";
+
 /* HTTP response, header, and body template, indicating that the
    requested document was not found.  */
 static char* not_found_response_template = 
@@ -39,6 +42,7 @@ static char* not_found_response_template =
 "  <p>The requested URL %s was not found on this server.</p>\n"
 " </body>\n"
 "</html>\n";
+
 /* HTTP response, header, and body template, indicating that the
    method was not understood.  */
 static char* bad_method_response_template = 
@@ -53,20 +57,20 @@ static char* bad_method_response_template =
 "</html>\n";
 /* Handler for SIGCHLD, to clean up child processes that have
    terminated.  */
-static void clean_up_child_process (int signal_number)
-{
+
+static void clean_up_child_process (int signal_number) {
 	int status;
-	wait (&status);
+	wait(&status);
 }
+
 /* Process an HTTP “GET” request for PAGE, and send the results to the
    file descriptor CONNECTION_FD.  */
-static void handle_get(int connection_fd, const char* page)
-{
+static void handle_get(int connection_fd, const char* page) {
 	struct server_module* module = NULL;
 	/* Make sure the requested page begins with a slash and does not
 	   contain any additional slashes -- we don’t support any
 	   subdirectories.  */
-	if (*page == '/' && strchr (page + 1, '/') == NULL) {
+	if (*page == '/' && strchr(page + 1, '/') == NULL) {
 		char module_file_name[64];
 		/* The page name looks OK.  Construct the module name by appending
 		   “.so” to the page name.  */
@@ -96,8 +100,7 @@ static void handle_get(int connection_fd, const char* page)
 	}
 }
 /* Handle a client connection on the file descriptor CONNECTION_FD.  */
-static void handle_connection(int connection_fd)
-{
+static void handle_connection(int connection_fd) {
 	char buffer[256];
 	ssize_t bytes_read;
 	/* Read some data from the client.  */
@@ -129,23 +132,20 @@ static void handle_connection(int connection_fd)
 		}
 		/* Check the protocol field.  We understand HTTP versions 1.0 and
 		   1.1.  */
-		if (strcmp(protocol, "HTTP/1.0") && strcmp (protocol, "HTTP/1.1")) {
+		if (strcmp(protocol, "HTTP/1.0") && strcmp(protocol, "HTTP/1.1")) {
 			/* We don’t understand this protocol.  Report a bad response.  */
 			write(connection_fd, bad_request_response, sizeof (bad_request_response));
-		}
-		else if (strcmp(method, "GET")) {
+		} else if (strcmp(method, "GET")) {
 			/* This server only implements the GET method.  The client
 			   specified some other method, so report the failure.  */
 			char response[1024];
-			snprintf (response, sizeof (response),
-					bad_method_response_template, method);
+			snprintf(response, sizeof (response), bad_method_response_template, method);
 			write(connection_fd, response, strlen(response));
-		}
-		else 
+		} else { 
 			/* A valid request.  Process it.  */
 			handle_get(connection_fd, url);
-	}
-	else if (bytes_read == 0)
+		}
+	} else if (bytes_read == 0)
 		/* The client closed the connection before sending any data.
 		   Nothing to do.  */
 		;
@@ -153,8 +153,8 @@ static void handle_connection(int connection_fd)
 		/* The call to read failed.  */
 		system_error("read");
 }
-void server_run(struct in_addr local_address, uint16_t port)
-{
+
+void server_run(struct in_addr local_address, uint16_t port) {
 	struct sockaddr_in socket_address;
 	int rval;
 	struct sigaction sigchld_action;
@@ -244,15 +244,13 @@ void server_run(struct in_addr local_address, uint16_t port)
 			   process.  */
 			close(connection);
 			exit(0);
-		}
-		else if (child_pid > 0) {
+		} else if (child_pid > 0) {
 			/* This is the parent process.  The child process handles the
 			   connection, so we don’t need our copy of the connected socket
 			   descriptor.  Close it.  Then continue with the loop and
 			   accept another connection.  */
 			close(connection);
-		}
-		else
+		} else
 			/* Call to fork failed.  */
 			system_error("fork");
 	}

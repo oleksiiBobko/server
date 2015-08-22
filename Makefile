@@ -6,7 +6,7 @@ SOURCES = server.c module.c common.c main.c
 # Corresponding object files.
 OBJECTS = $(SOURCES:.c=.o)
 # Server module shared library files. 
-MODULES = diskfree.so issue.so processes.so time.so
+MODULES = diskfree.so issue.so processes.so time.so hello.so
 ### Rules.  ############################################################
 # Phony targets don’t correspond to files that are built; they’re names
 # for conceptual build targets.

@@ -27,7 +27,7 @@ void module_generate(int fd)
 	strftime(time_string, sizeof(time_string), "%H:%M:%S", ptm);
 	/* Create a stream corresponding to the client socket file
 	   descriptor.  */
-	fp = fdopen (fd, "w");
+	fp = fdopen(fd, "w");
 	assert(fp != NULL);
 	/* Generate the HTML output.  */
 	fprintf(fp, page_template, time_string);
